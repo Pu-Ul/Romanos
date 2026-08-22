@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Romanos: Soberanía, Fe y Misericordia</title>
+    <style>
+        :root {
+            --primary: #1e1b4b;
+            --primary-light: #312e81;
+            --accent: #b45309;
+            --accent-hover: #d97706;
+            --success: #047857;
+            --danger: #be123c;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            margin-top: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        /* Tabs Navigation */
+        .tabs {
+            display: flex;
+            background-color: var(--border);
+            padding: 4px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: none;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background-color: var(--card-bg);
+            color: var(--primary);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* 3D Flashcards Styles */
+        .card-view {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .flashcard-container {
+            perspective: 1000px;
+            width: 100%;
+            height: 320px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 16px;
+            padding: 35px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        }
+
+        .card-front {
+            background-color: var(--card-bg);
+            border: 2px solid var(--border);
+            color: var(--text-main);
+        }
+
+        .card-front::after {
+            content: "Haz clic para voltear 🔄";
+            position: absolute;
+            bottom: 20px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .card-back {
+            background-color: var(--primary);
+            color: #ffffff;
+            transform: rotateY(180deg);
+            border: 2px solid var(--primary-light);
+        }
+
+        .card-back::after {
+            content: "Haz clic para volver a la pregunta 🔄";
+            position: absolute;
+            bottom: 20px;
+            font-size: 0.85rem;
+            color: #93c5fd;
+            font-weight: 500;
+        }
+
+        .card-tag {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            margin-bottom: 15px;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .card-front .card-tag {
+            background-color: #f1f5f9;
+            color: var(--primary-light);
+        }
+
+        .card-back .card-tag {
+            background-color: var(--primary-light);
+            color: #ffffff;
+        }
+
+        .card-text {
+            font-size: 1.3rem;
+            line-height: 1.5;
+            font-weight: 600;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-light);
+        }
+
+        .btn:disabled {
+            background-color: var(--border);
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        .progress-text {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Quiz Styles */
+        .quiz-view {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            border: 2px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .question-block {
+            display: none;
+        }
+
+        .question-block.active {
+            display: block;
+        }
+
+        .question-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .option-item:hover:not(.disabled) {
+            border-color: var(--primary-light);
+            background-color: #faf5ff;
+        }
+
+        .option-item.selected {
+            border-color: var(--primary);
+            background-color: #f5f3ff;
+        }
+
+        .option-item.correct {
+            border-color: var(--success);
+            background-color: #ecfdf5;
+            color: var(--success);
+        }
+
+        .option-item.wrong {
+            border-color: var(--danger);
+            background-color: #fff1f2;
+            color: var(--danger);
+        }
+
+        .option-item.disabled {
+            cursor: not-allowed;
+        }
+
+        .option-prefix {
+            font-weight: 700;
+            margin-right: 12px;
+        }
+
+        .feedback-box {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback-box.correct {
+            display: block;
+            background-color: #ecfdf5;
+            border-left: 4px solid var(--success);
+            color: #065f46;
+        }
+
+        .feedback-box.wrong {
+            display: block;
+            background-color: #fff1f2;
+            border-left: 4px solid var(--danger);
+            color: #9f1239;
+        }
+
+        .results-block {
+            display: none;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .results-block h2 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: #f5f3ff;
+            border: 4px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Romanos 9 y 10</h1>
+            <p>Soberanía Divina, Elección y el Camino de la Fe</p>
+        </header>
+
+        <!-- Pestañas de Navegación -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('cards')">Tarjetas Didácticas</button>
+            <button class="tab-btn" onclick="switchTab('quiz')">Cuestionario</button>
+        </div>
+
+        <!-- Contenido 1: Tarjetas Didácticas -->
+        <div id="cards-tab" class="tab-content active">
+            <div class="card-view">
+                <div class="flashcard-container" onclick="flipCard()">
+                    <div class="flashcard" id="flashcard">
+                        <!-- Cara Frontal -->
+                        <div class="card-face card-front">
+                            <div class="card-tag">Pregunta</div>
+                            <div class="card-text" id="front-text">Cargando...</div>
+                        </div>
+                        <!-- Cara Trasera -->
+                        <div class="card-face card-back">
+                            <div class="card-tag">Respuesta</div>
+                            <div class="card-text" id="back-text">Cargando...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn" id="prev-btn" onclick="prevCard()">Anterior</button>
+                    <span class="progress-text" id="card-progress">1 / 4</span>
+                    <button class="btn" id="next-btn" onclick="nextCard()">Siguiente</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido 2: Cuestionario -->
+        <div id="quiz-tab" class="tab-content">
+            <div class="quiz-view">
+                <div id="quiz-container">
+                    <!-- Las preguntas se inyectan dinámicamente con JS -->
+                </div>
+                
+                <div class="results-block" id="results-container">
+                    <h2>¡Cuestionario Completado!</h2>
+                    <p>Tu puntuación final es:</p>
+                    <div class="score-circle" id="score-display">0/5</div>
+                    <p id="results-feedback"></p>
+                    <button class="btn" onclick="resetQuiz()" style="margin-top: 15px;">Intentar de Nuevo</button>
+                </div>
+
+                <div class="controls" id="quiz-controls" style="margin-top: 20px;">
+                    <button class="btn" id="quiz-prev" onclick="prevQuestion()" disabled>Anterior</button>
+                    <span class="progress-text" id="quiz-progress">Pregunta 1 de 5</span>
+                    <button class="btn" id="quiz-next" onclick="nextQuestion()">Siguiente</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATOS DE LAS TARJETAS ---
+        const flashcardsData = [
+            {
+                question: "¿A través de qué medio se alcanza la justicia según la conclusión del texto sobre Romanos 9?",
+                answer: "A través de la fe en Cristo."
+            },
+            {
+                question: "¿Cuál era el sentir exacto de Pablo por sus hermanos perdidos según Romanos 9:2?",
+                answer: "Que tenía \"gran tristeza y continuo dolor en mi corazón\"."
+            },
+            {
+                question: "¿Por qué Israel no alcanzó la justicia de la ley según Romanos 9:32?",
+                answer: "Porque iban tras ella \"no por fe, sino como por obras de la ley\"."
+            },
+            {
+                question: "¿De qué depende el propósito de la elección y el favor de Dios según Romanos 9:16?",
+                answer: "No depende del que quiere, ni del que corre, sino de Dios que tiene misericordia."
+            }
+        ];
+
+        // --- DATOS DEL CUESTIONARIO ---
+        const quizData = [
+            {
+                question: "Según Romanos 9:16, cuando compartimos el mensaje de salvación, ¿de qué depende el propósito de Dios?",
+                options: [
+                    "Del que quiere conseguirlo por su cuenta.",
+                    "Del que corre y se esfuerza activamente.",
+                    "De Dios que tiene misericordia.",
+                    "De todas las anteriores combinadas."
+                ],
+                correct: 2,
+                explanation: "Correcto. El texto bíblico enfatiza: \"Así que no depende del que quiere, ni del que corre, sino de Dios que tiene misericordia\"."
+            },
+            {
+                question: "Según Romanos 9:32, ¿por qué Israel no alcanzó la justicia de Dios?",
+                options: [
+                    "Porque no guardaban ningún ritual ni ley.",
+                    "Porque iban tras ella \"no por fe, sino como por obras de la ley\".",
+                    "Porque Dios los había rechazado de manera definitiva.",
+                    "Porque les faltaba entusiasmo en sus rituales."
+                ],
+                correct: 1,
+                explanation: "Correcto. Tropezaron en la piedra de tropiezo debido a que buscaron la aprobación por sus propios méritos y no mediante la fe."
+            },
+            {
+                question: "En Romanos 10:2, ¿cómo describe el apóstol Pablo a las personas que tienen un gran fervor pero carecen de la Verdad?",
+                options: [
+                    "Tienen celo de Dios, pero no conforme a ciencia.",
+                    "Tienen conocimiento, pero les falta amor genuino.",
+                    "Tienen abundancia de obras, pero no tienen fe viva."
+                ],
+                correct: 0,
+                explanation: "Correcto. Pablo reconoce que tienen pasión por las cosas divinas (celo), pero esta carece del entendimiento o conocimiento correcto (ciencia)."
+            },
+            {
+                question: "Según Romanos 10:10, ¿para qué se cree con el corazón y para qué se confiesa con la boca?",
+                options: [
+                    "Con el corazón se cree para bendición, y con la boca se confiesa para prosperar.",
+                    "Con el corazón se cree para santidad, y con la boca se confiesa para ser visto.",
+                    "Con el corazón se cree para justicia, y con la boca se confiesa para salvación."
+                ],
+                correct: 2,
+                explanation: "Correcto. Esta es la síntesis del camino de fe: la fe interna produce justicia, y la profesión pública de esa fe confirma la salvación."
+            },
+            {
+                question: "¿Cuál es el orden lógico de las 5 acciones en la cadena misionera descrita en Romanos 10:14-15?",
+                options: [
+                    "Creer, Oír, Predicar, Ser Enviados, Invocar",
+                    "Invocar, Creer, Oír, Predicar, Ser Enviados",
+                    "Ser Enviados, Predicar, Oír, Creer, Invocar"
+                ],
+                correct: 1,
+                explanation: "Correcto. La secuencia lógica de la salvación inicia con ser enviados para predicar, de modo que puedan oír, creer e invocar el nombre del Señor."
+            }
+        ];
+
+        // --- ESTADO DE LA APLICACIÓN ---
+        let currentCardIndex = 0;
+        let currentQuestionIndex = 0;
+        let userAnswers = Array(quizData.length).fill(null);
+
+        // --- CONTROL DE PESTAÑAS ---
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            if (tab === 'cards') {
+                document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+                document.getElementById('cards-tab').classList.add('active');
+            } else {
+                document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+                document.getElementById('quiz-tab').classList.add('active');
+                renderQuiz();
+            }
+        }
+
+        // --- LÓGICA DE LAS TARJETAS ---
+        function updateCard() {
+            const card = document.getElementById('flashcard');
+            card.classList.remove('flipped'); // Resetear giro
+            
+            setTimeout(() => {
+                document.getElementById('front-text').innerText = flashcardsData[currentCardIndex].question;
+                document.getElementById('back-text').innerText = flashcardsData[currentCardIndex].answer;
+                document.getElementById('card-progress').innerText = `${currentCardIndex + 1} / ${flashcardsData.length}`;
+                
+                document.getElementById('prev-btn').disabled = currentCardIndex === 0;
+                document.getElementById('next-btn').disabled = currentCardIndex === flashcardsData.length - 1;
+            }, 150);
+        }
+
+        function flipCard() {
+            document.getElementById('flashcard').classList.toggle('flipped');
+        }
+
+        function nextCard() {
+            if (currentCardIndex < flashcardsData.length - 1) {
+                currentCardIndex++;
+                updateCard();
+            }
+        }
+
+        function prevCard() {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                updateCard();
+            }
+        }
+
+        // --- LÓGICA DEL CUESTIONARIO ---
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = '';
+
+            quizData.forEach((q, qIndex) => {
+                const block = document.createElement('div');
+                block.className = `question-block ${qIndex === currentQuestionIndex ? 'active' : ''}`;
+                block.id = `q-block-${qIndex}`;
+
+                const title = document.createElement('h3');
+                title.className = 'question-title';
+                title.innerText = `${qIndex + 1}. ${q.question}`;
+                block.appendChild(title);
+
+                const optionsList = document.createElement('div');
+                optionsList.className = 'options-list';
+
+                q.options.forEach((opt, optIndex) => {
+                    const item = document.createElement('div');
+                    item.className = 'option-item';
+                    
+                    // Comprobar estado previo si ya fue respondida
+                    const hasAnswered = userAnswers[qIndex] !== null;
+                    if (hasAnswered) {
+                        item.classList.add('disabled');
+                        if (optIndex === q.correct) {
+                            item.classList.add('correct');
+                        } else if (optIndex === userAnswers[qIndex]) {
+                            item.classList.add('wrong');
+                        }
+                    }
+
+                    item.innerHTML = `<span class="option-prefix">${String.fromCharCode(65 + optIndex)})</span> ${opt}`;
+                    
+                    if (!hasAnswered) {
+                        item.onclick = () => selectOption(qIndex, optIndex);
+                    }
+                    optionsList.appendChild(item);
+                });
+
+                block.appendChild(optionsList);
+
+                // Caja de retroalimentación
+                const feedback = document.createElement('div');
+                feedback.id = `feedback-${qIndex}`;
+                feedback.className = 'feedback-box';
+                if (userAnswers[qIndex] !== null) {
+                    const isCorrect = userAnswers[qIndex] === q.correct;
+                    feedback.className = `feedback-box ${isCorrect ? 'correct' : 'wrong'}`;
+                    feedback.innerHTML = `<strong>${isCorrect ? '¡Excelente!' : 'Respuesta incorrecta.'}</strong> ${q.explanation}`;
+                }
+                block.appendChild(feedback);
+
+                container.appendChild(block);
+            });
+
+            updateQuizControls();
+        }
+
+        function selectOption(qIndex, optIndex) {
+            userAnswers[qIndex] = optIndex;
+            renderQuiz();
+        }
+
+        function updateQuizControls() {
+            const isLast = currentQuestionIndex === quizData.length - 1;
+            const hasAnsweredCurrent = userAnswers[currentQuestionIndex] !== null;
+
+            document.getElementById('quiz-prev').disabled = currentQuestionIndex === 0;
+            
+            const nextBtn = document.getElementById('quiz-next');
+            if (isLast) {
+                nextBtn.innerText = 'Ver Resultados';
+                // Solo habilitar el botón de resultados si se ha contestado la última pregunta
+                nextBtn.disabled = !hasAnsweredCurrent;
+            } else {
+                nextBtn.innerText = 'Siguiente';
+                nextBtn.disabled = !hasAnsweredCurrent; // Forzar a responder antes de avanzar
+            }
+
+            document.getElementById('quiz-progress').innerText = `Pregunta ${currentQuestionIndex + 1} de ${quizData.length}`;
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < quizData.length - 1) {
+                currentQuestionIndex++;
+                renderQuiz();
+            } else {
+                showQuizResults();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuiz();
+            }
+        }
+
+        function showQuizResults() {
+            document.getElementById('quiz-container').style.display = 'none';
+            document.getElementById('quiz-controls').style.display = 'none';
+            
+            const resultsBlock = document.getElementById('results-container');
+            resultsBlock.style.display = 'block';
+
+            let score = 0;
+            userAnswers.forEach((ans, i) => {
+                if (ans === quizData[i].correct) score++;
+            });
+
+            document.getElementById('score-display').innerText = `${score} / ${quizData.length}`;
+
+            let feedbackText = '';
+            if (score === quizData.length) {
+                feedbackText = '¡Excelente! Tienes un dominio sobresaliente de los temas de Romanos 9 y 10.';
+            } else if (score >= 3) {
+                feedbackText = '¡Buen trabajo! Conoces bien los conceptos clave, pero puedes repasar las tarjetas para perfeccionarlo.';
+            } else {
+                feedbackText = 'Sigue repasando. Revisa detenidamente el significado de la justicia por fe y vuelve a intentarlo.';
+            }
+            document.getElementById('results-feedback').innerText = feedbackText;
+        }
+
+        function resetQuiz() {
+            currentQuestionIndex = 0;
+            userAnswers = Array(quizData.length).fill(null);
+            
+            document.getElementById('quiz-container').style.display = 'block';
+            document.getElementById('quiz-controls').style.display = 'flex';
+            document.getElementById('results-container').style.display = 'none';
+            
+            renderQuiz();
+        }
+
+        // Inicializar
+        updateCard();
+    </script>
+</body>
+</html>
